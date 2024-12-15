@@ -1,6 +1,6 @@
 #   *********************************************************************
 #   *                                                                   *
-#   *   Function:       NodPoolAPICall                                  *
+#   *   Function:       get_nordpool_prices                             *
 #   *   Description:    Get 'DayAhead' data from NordPool for tomorrow  *
 #   *                   in Euro's for Netherlands                       *
 #   *   Author:         Danny Oldenhave                                 *
