@@ -9,6 +9,7 @@
 #   *                                                                    *
 #   **********************************************************************
 
+
 def identifyPeaks(prices, avg_price, peakW):
     left = peakW // 2
     right = peakW - left - 1
@@ -44,7 +45,7 @@ def identifyPeaks(prices, avg_price, peakW):
 
         iteration += 1
 
-        if (iteration < MAX_ITERATIONS):
+        if (iteration >= MAX_ITERATIONS): # Break when in infinite loop
             break
 
     

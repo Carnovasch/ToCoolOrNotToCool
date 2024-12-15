@@ -1,13 +1,14 @@
 #   *********************************************************************
 #   *                                                                   *
 #   *   Function:       get_nordpool_prices                             *
-#   *   Description:    Get 'DayAhead' data from NordPool for tomorrow  *
+#   *   Description:    Get 'DayAhead' data from NordPool for today     *
 #   *                   in Euro's for Netherlands                       *
 #   *   Author:         Danny Oldenhave                                 *
 #   *   Used within:    ToCoolOrNotToCool                               *
 #   *   Dependancies:   requests, json, datetime                        *
 #   *                                                                   *
 #   *********************************************************************
+
 
 import requests, json
 from datetime import date
