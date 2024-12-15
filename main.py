@@ -49,6 +49,9 @@ def FetchAndParseNPData():
     for priceData in nordPoolData["multiAreaEntries"]:
         prices.append(priceData["entryPerArea"]["NL"])
 
+    print(AVG_PRICE)
+    print(prices)
+
     # Get enablelist for enabling relays
     global relayEnableList
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAK_WIDTH)
