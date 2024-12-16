@@ -26,22 +26,23 @@ def identifyPeaks(prices, avg_price, peakW):
     MAX_ITERATIONS = len(prices)
     iteration = 0
 
-    while (max(check_prices) > 0):
+    while (max(check_prices) >= avg_price):
         # Identify maximum value in prices, and set peak
         max_price_i = prices.index(max(check_prices))
-        if max_price_i == 0:
+        if max_price_i < left:
             max_price_i = left
-        elif max_price_i == len(prices) - 1:
-            max_price_i = len(prices) - right
+        elif max_price_i > len(prices) - right - 1:
+            max_price_i = len(prices) - right - 1
 
         # Set peak
         for i in range(max_price_i - left, max_price_i + right + 1):
-            peak_list[i] = True
+            if check_prices[i] > 0:  # Set as peak only when can be checked
+                peak_list[i] = True
 
         # Set peak + edges to 0 in check_prices (when applicable)
         for i in range(max_price_i - left - 2, max_price_i + right + 2):
             if (i >= 0 or i < len(prices)):
-                check_prices[i] = 0  
+                check_prices[i] = 0  # Set to 0, so it wont be checkd or identified as peak anymore
 
         iteration += 1
 

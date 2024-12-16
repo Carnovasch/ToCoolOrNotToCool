@@ -4,7 +4,7 @@
 #   *   Description:        Scraping and parsing NordPool data to identify peaks and           *
 #   *                       enable relais accordingly to set cooling equipment                 *
 #   *   Idea By:            Boudewijn Rosmulder                                                *
-#   *   Sponsored by:       xxx                                                                *
+#   *   Sponsored by:       Koelservice Van Tol                                                *
 #   *   Author:             Danny Oldenhave                                                    *
 #   *   Last modified:      12-12-2024                                                         *
 #   *   Dependancies:       schedule, logging, datetime, FetchNordPoolData, PeakIdentification *
@@ -18,7 +18,7 @@ import FetchNordPoolData, PeakIdentification
 
 
 # Set constances to be used; these can be edited
-AVG_PRICE_INC = 15               # Amount (EUR) to increase average price to determine peaks
+AVG_PRICE_INC = 15              # Amount (EUR) to increase average price to determine peaks
 MAX_PEAK_WIDTH = 3              # Amount of maximum hours a peak shall consist of 
 
 # Enable logging
@@ -49,9 +49,6 @@ def FetchAndParseNPData():
     for priceData in nordPoolData["multiAreaEntries"]:
         prices.append(priceData["entryPerArea"]["NL"])
 
-    print(AVG_PRICE)
-    print(prices)
-
     # Get enablelist for enabling relays
     global relayEnableList
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAK_WIDTH)
@@ -71,9 +68,9 @@ def setRelays():
 
 # Set scheduling scheme
 # At beginning of each day, get new list from parsed NordPool data
-#schedule.every().day.at("21:05").do(FetchAndParseNPData())
+#schedule.every().day.at("00:01").do(FetchAndParseNPData())
 # At beginning of each hour use the relaysEnableList to enable/disable relays
-#schedule.every().hour.at(":06").do(setRelays)
+#schedule.every().hour.at(":05").do(setRelays)
 
 
 # Start loop to run schedules jobs
