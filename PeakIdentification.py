@@ -10,7 +10,7 @@
 #   **********************************************************************
 
 
-def identifyPeaks(prices, avg_price, peakW):
+def identifyPeaks(prices, avg_price, peakW) -> list[bool]:
     left = peakW // 2
     right = peakW - left - 1
 

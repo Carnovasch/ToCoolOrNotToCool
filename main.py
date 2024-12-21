@@ -45,7 +45,8 @@ logging.basicConfig(
 nordPoolData = None
 relayEnableList = [False] * 24
 
-def CalcNewAvgPrice(prices, peaks):
+
+def CalcNewAvgPrice(prices, peaks) -> float:
     filtered_values = [value for value, include in zip(prices, peaks) if not include] # Get only prices when not in peak
 
     #Calculate new average and return, return 0 when lists are empty (catch when divide by 0)
@@ -55,10 +56,12 @@ def CalcNewAvgPrice(prices, peaks):
         average = 0.0
     return average
 
+
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
-def FetchAndParseNPData():
-    global nordPoolData
+def FetchAndParseNPData() -> None:
     logging.info("Start fetching data from Nordpool")
+
+    global nordPoolData    
     nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     if nordPoolData["backup"] == False:
@@ -70,7 +73,7 @@ def FetchAndParseNPData():
     OLD_AVG_PRICE = nordPoolData["areaAverages"][0]["price"]
     AVG_PRICE = OLD_AVG_PRICE + AVG_PRICE_INC
 
-    logging.info("Avagerage price for today: E %s", OLD_AVG_PRICE)
+    logging.info("Average price for today: E %s", OLD_AVG_PRICE)
 
     prices = []
     for priceData in nordPoolData["multiAreaEntries"]:
@@ -82,15 +85,17 @@ def FetchAndParseNPData():
 
     # Calculate new average price for today and log
     newAVGPrice = CalcNewAvgPrice(prices, relayEnableList)
+
     logging.info("New average price for today is: E %s, improvement of: E %s", newAVGPrice, round(OLD_AVG_PRICE-newAVGPrice, 2))
     logging.info("Calculated savings for today: E %s", round(newAVGPrice * 24, 2))
 
-def TurnAllRelaysOff():
+
+def TurnAllRelaysOff() -> None:
     for i in range(1,5):
             bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 # Main function to set relays based on relayEnableList
-def setRelays():
+def setRelays() -> None:
     logging.info("Start of new hour, getting ready to set Relays")
     logging.info("Turn all relays off")
 
@@ -106,10 +111,7 @@ def setRelays():
     if enable == True:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
         bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
-
-
-    
-
+  
 
 if __name__ == "__main__":
     logging.info("Started the program")
@@ -120,15 +122,13 @@ if __name__ == "__main__":
 
     TurnAllRelaysOff()
 
-    # Get initial data from Nordpool at startup of the program
+    # Get initial data from Nordpool at startup of the program and set relay accordingly
     FetchAndParseNPData()
+    setRelays()
 
     # Set scheduling scheme
     schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
     schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
-
-    #schedule.every().day.at("00:01").do(FetchAndParseNPData)
-    #schedule.every(1).minutes.do(setRelays)
 
     while True:
         schedule.run_pending()
