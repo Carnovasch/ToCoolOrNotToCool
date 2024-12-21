@@ -101,7 +101,7 @@ def setRelays():
     
     logging.info("Hour is %s, relay enable is %s", hour, enable)
 
-    if enable == False:
+    if enable == True:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
         bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
 
@@ -120,11 +120,11 @@ if __name__ == "__main__":
     FetchAndParseNPData()
 
     # Set scheduling scheme
-    #schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
-    #schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
+    schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
+    schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
 
-    schedule.every().day.at("15:23").do(FetchAndParseNPData)
-    schedule.every(1).minutes.do(setRelays)
+    #schedule.every().day.at("00:01").do(FetchAndParseNPData)
+    #schedule.every(1).minutes.do(setRelays)
 
     while True:
         schedule.run_pending()
