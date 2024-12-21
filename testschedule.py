@@ -5,13 +5,9 @@ import schedule
 
 DEVICE_BUS = 1
 DEVICE_ADDR = 0x10
-#bus = smbus.SMBus(DEVICE_BUS)
+bus = smbus.SMBus(DEVICE_BUS)
 
-# Set scheduling scheme
-# At beginning of each day, get new list from parsed NordPool data
-schedule.every().day.at("14:55").do(Relay)
-# At beginning of each hour use the relaysEnableList to enable/disable relays
-#schedule.every().hour.at(":06").do(setRelays)
+
 
 def Relay():
     try:
@@ -23,6 +19,14 @@ def Relay():
     except KeyboardInterrupt as e:
             print("Exit")
             sys.exit()
+
+
+# Set scheduling scheme
+# At beginning of each day, get new list from parsed NordPool data
+schedule.every().day.at("14:55").do(Relay)
+# At beginning of each hour use the relaysEnableList to enable/disable relays
+#schedule.every().hour.at(":06").do(setRelays)
+
 
 # Start loop to run schedules jobs
 while True:
