@@ -41,7 +41,7 @@ relayEnableList = [False] * 24
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
 def FetchAndParseNPData():
     global nordPoolData
-    nordPoolData = FetchNordPoolData.get_nordpool_prices(debug=True)
+    nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     # Get relevant data from JSON, assume data is correct
     AVG_PRICE = nordPoolData["areaAverages"][0]["price"] + AVG_PRICE_INC
