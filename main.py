@@ -6,7 +6,7 @@
 #   *   Idea By:            Boudewijn Rosmulder                                                *
 #   *   Sponsored by:       Koelservice Van Tol                                                *
 #   *   Author:             Danny Oldenhave                                                    *
-#   *   Last modified:      12-12-2024                                                         *
+#   *   Last modified:      21-12-2024                                                         *
 #   *   Dependancies:       schedule, logging, datetime, time, smbus2                          *
 #   *   Modules:            FetchNordPoolData, PeakIdentification                              *
 #   *   Subdependancies:    requests, json, datetim                                            *
