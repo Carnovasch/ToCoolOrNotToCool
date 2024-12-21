@@ -50,7 +50,7 @@ def CalcNewAvgPrice(prices, peaks):
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
 def FetchAndParseNPData():
     global nordPoolData
-    nordPoolData = FetchNordPoolData.get_nordpool_prices(debug=True)
+    nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     if nordPoolData["backup"] == False:
         logging.info("Nordpool data fetched succesfully")
