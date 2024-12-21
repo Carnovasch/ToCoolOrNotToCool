@@ -53,6 +53,8 @@ def FetchAndParseNPData():
     global relayEnableList
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAK_WIDTH)
 
+    print(prices)
+
 
 # Main function to set relays based on relayEnableList
 def setRelays():
