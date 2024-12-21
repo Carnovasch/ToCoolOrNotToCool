@@ -101,7 +101,7 @@ def setRelays():
     
     logging.info("Hour is %s, relay enable is %s", hour, enable)
 
-    if enable == True:
+    if enable == False:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
         bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
 
