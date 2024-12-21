@@ -123,7 +123,7 @@ if __name__ == "__main__":
     #schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
     #schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
 
-    schedule.every().day.at("15:17").do(FetchAndParseNPData)
+    schedule.every().day.at("15:23").do(FetchAndParseNPData)
     schedule.every(1).minutes.do(setRelays)
 
     while True:
