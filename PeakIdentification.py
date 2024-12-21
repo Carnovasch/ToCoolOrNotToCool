@@ -48,6 +48,5 @@ def identifyPeaks(prices, avg_price, peakW):
 
         if (iteration >= MAX_ITERATIONS): # Break when in infinite loop
             break
-
     
     return peak_list
