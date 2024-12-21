@@ -124,7 +124,7 @@ if __name__ == "__main__":
     #schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     schedule.every().day.at("15:17").do(FetchAndParseNPData)
-    schedule.every(2).minutes.do(setRelays)
+    schedule.every(1).minutes.do(setRelays)
 
     while True:
         schedule.run_pending()
