@@ -85,14 +85,16 @@ def FetchAndParseNPData():
     logging.info("New average price for today is: E %s, improvement of: E %s", newAVGPrice, round(OLD_AVG_PRICE-newAVGPrice, 2))
     logging.info("Calculated savings for today: E %s", round(newAVGPrice * 24, 2))
 
+def TurnAllRelaysOff():
+    for i in range(1,5):
+            bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 # Main function to set relays based on relayEnableList
 def setRelays():
     logging.info("Start of new hour, getting ready to set Relays")
     logging.info("Turn all relays off")
 
-    for i in range(1,5):
-        bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)
+    TurnAllRelaysOff()
 
     hour = datetime.datetime.now().hour
 
@@ -115,6 +117,8 @@ if __name__ == "__main__":
     # Default to 1, if RELAY_TO_SWITCH is not set properly
     if RELAY_TO_SWITCH not in range(1, 5):
         RELAY_TO_SWITCH = 1
+
+    TurnAllRelaysOff()
 
     # Get initial data from Nordpool at startup of the program
     FetchAndParseNPData()
