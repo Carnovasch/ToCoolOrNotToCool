@@ -65,9 +65,12 @@ def FetchAndParseNPData() -> None:
     nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     if nordPoolData["backup"] == False:
-        logging.info("Nordpool data fetched succesfully")
-    else:
+        logging.info("Nordpool data fetched succesfully")       
+    elif "e" in nordPoolData : # An error has occured fetching data from Nordpool
         logging.info("Couldn't fetch Nordpool data, using Backupfile")
+        logging.info("Error: %s", nordPoolData["e"])
+    else: # Debugging mode
+        logging.info("Debug mode, using Backupfile")
      
     # Get relevant data from JSON, assume data is correct
     OLD_AVG_PRICE = nordPoolData["areaAverages"][0]["price"]
@@ -91,14 +94,14 @@ def FetchAndParseNPData() -> None:
 
 
 def TurnAllRelaysOff() -> None:
+    logging.info("Turn all relays off")
     for i in range(1,5):
             bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 # Main function to set relays based on relayEnableList
 def setRelays() -> None:
     logging.info("Start of new hour, getting ready to set Relays")
-    logging.info("Turn all relays off")
-
+  
     TurnAllRelaysOff()
 
     hour = datetime.datetime.now().hour
@@ -116,12 +119,12 @@ def setRelays() -> None:
 if __name__ == "__main__":
     logging.info("Started the program")
 
+    TurnAllRelaysOff()
+
     # Default to 1, if RELAY_TO_SWITCH is not set properly
     if RELAY_TO_SWITCH not in range(1, 5):
         RELAY_TO_SWITCH = 1
-
-    TurnAllRelaysOff()
-
+  
     # Get initial data from Nordpool at startup of the program and set relay accordingly
     FetchAndParseNPData()
     setRelays()

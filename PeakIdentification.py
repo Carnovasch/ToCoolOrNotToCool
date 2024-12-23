@@ -10,11 +10,11 @@
 #   **********************************************************************
 
 
-def identifyPeaks(prices, avg_price, peakW) -> list[bool]:
+def identifyPeaks(prices:list[float], avg_price:float, peakW: int) -> list[bool]:
     left = peakW // 2
     right = peakW - left - 1
 
-    check_prices = prices.copy()
+    check_prices = prices.copy()    # Be sure not to override anything for possible future use
 
     peak_list = [False] * len(prices)
 
@@ -28,7 +28,7 @@ def identifyPeaks(prices, avg_price, peakW) -> list[bool]:
 
     while (max(check_prices) >= avg_price):
         # Identify maximum value in prices, and set peak
-        max_price_i = prices.index(max(check_prices))
+        max_price_i = check_prices.index(max(check_prices))
         if max_price_i < left:
             max_price_i = left
         elif max_price_i > len(prices) - right - 1:
@@ -41,8 +41,8 @@ def identifyPeaks(prices, avg_price, peakW) -> list[bool]:
 
         # Set peak + edges to 0 in check_prices (when applicable)
         for i in range(max_price_i - left - 2, max_price_i + right + 2):
-            if (i >= 0 or i < len(prices)):
-                check_prices[i] = 0  # Set to 0, so it wont be checkd or identified as peak anymore
+            if 0 <= i < len(prices):
+                check_prices[i] = 0  # Set to 0, so it wont be checked or identified as peak anymore
 
         iteration += 1
 
