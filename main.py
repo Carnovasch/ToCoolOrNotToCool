@@ -6,28 +6,31 @@
 #   *   Idea By:            Boudewijn Rosmulder                                                *
 #   *   Sponsored by:       Koelservice Van Tol                                                *
 #   *   Author:             Danny Oldenhave                                                    *
-#   *   Last modified:      21-12-2024                                                         *
-#   *   Dependancies:       schedule, logging, datetime, time, smbus2                          *
+#   *   Last modified:      01-01-2025                                                         *
+#   *   Dependancies:       json, schedule, logging, datetime, time, smbus2                    *
 #   *   Modules:            FetchNordPoolData, PeakIdentification                              *
 #   *   Subdependancies:    requests, json, datetim                                            *
 #   *                                                                                          *
 #   ********************************************************************************************
 
 
-import schedule, logging, datetime, time
+import json, schedule, logging, datetime, time
 import smbus
 import FetchNordPoolData, PeakIdentification
 
-# Set constances to be used; these can be edited
-AVG_PRICE_INC = 15              # Amount (EUR) to increase average price to determine peaks
-MAX_PEAK_WIDTH = 3              # Amount of maximum hours a peak shall consist of 
-RELAY_TO_SWITCH = 1             # Set which relay to enable / disable; 1, 2, 3 or 4
+# Loading server config data from file
+with open("./ServerConfig.json", "r") as server_config:
+    SERVER_DATA = json.load(server_config)
+
+AVG_PRICE_INC = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EUR) to increase average price to determine peaks
+MAX_PEAK_WIDTH = SERVER_DATA["GeneralConfig"]["MAX_PEAK_WIDTH"]     # Amount of maximum hours a peak shall consist of 
+RELAY_TO_SWITCH = SERVER_DATA["GeneralConfig"]["RELAY_TO_SWITCH"]   # Set which relay to enable / disable; 1, 2, 3 or 4
 
 # Setting constances for Relayshield
-DEVICE_BUS = 1
-DEVICE_ADDR = 0x10
-DEVICE_ON = 0xff
-DEVICE_OFF = 0x00
+DEVICE_BUS = SERVER_DATA["RelayshieldConfig"]["DEVICE_BUS"]
+DEVICE_ADDR = SERVER_DATA["RelayshieldConfig"]["DEVICE_ADDR"]
+DEVICE_ON = SERVER_DATA["RelayshieldConfig"]["DEVICE_ON"]
+DEVICE_OFF = SERVER_DATA["RelayshieldConfig"]["DEVICE_OFF"]
 bus = smbus.SMBus(DEVICE_BUS)
 
 # Initialize logging
@@ -98,6 +101,7 @@ def TurnAllRelaysOff() -> None:
     for i in range(1,5):
             bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
+
 # Main function to set relays based on relayEnableList
 def setRelays() -> None:
     logging.info("Start of new hour, getting ready to set Relays")
@@ -131,7 +135,7 @@ if __name__ == "__main__":
 
     # Set scheduling scheme
     schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
-    schedule.every().hour.at(":05").do(setRelays)   # At beginning of each hour use the relaysEnableList to enable/disable relays
+    schedule.every().hour.at(":05").do(setRelays)               # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     while True:
         schedule.run_pending()
