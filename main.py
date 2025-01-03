@@ -15,25 +15,25 @@
 
 
 import json, schedule, logging, datetime, time
-#import smbus
+import smbus
 import FetchNordPoolData, PeakIdentification
 
 # Loading server config data from file
 with open("./ServerConfig.json", "r") as server_config:
     SERVER_DATA = json.load(server_config)
 
-AVG_PRICE_INC = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EUR) to increase average price to determine peaks
-MAX_PEAK_WIDTH = SERVER_DATA["GeneralConfig"]["MAX_PEAK_WIDTH"]     # Amount of maximum hours a peak shall consist of 
-RELAY_TO_SWITCH = SERVER_DATA["GeneralConfig"]["RELAY_TO_SWITCH"]   # Set which relay to enable / disable; 1, 2, 3 or 4
+AVG_PRICE_INC: int = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EUR) to increase average price to determine peaks
+MAX_PEAK_WIDTH: int = SERVER_DATA["GeneralConfig"]["MAX_PEAK_WIDTH"]     # Amount of maximum hours a peak shall consist of 
+RELAY_TO_SWITCH: int = SERVER_DATA["GeneralConfig"]["RELAY_TO_SWITCH"]   # Set which relay to enable / disable; 1, 2, 3 or 4
 
-fetch_Success = False
+fetch_Success: bool = False
 
 # Setting constances for Relayshield
-DEVICE_BUS = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
-DEVICE_ADDR = SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]
-DEVICE_ON = SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"]
-DEVICE_OFF = SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"]
-#bus = smbus.SMBus(DEVICE_BUS)
+DEVICE_BUS: int = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
+DEVICE_ADDR: str = SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]
+DEVICE_ON: str = SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"]
+DEVICE_OFF: str = SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"]
+bus = smbus.SMBus(DEVICE_BUS)
 
 # Initialize logging
 logging.basicConfig(
@@ -47,23 +47,22 @@ logging.basicConfig(
 )
 
 # Initialize global variables
-nordPoolData = None
-relayEnableList = [False] * 24
+nordPoolData: dict = None
+relayEnableList: list = [False] * 24
 
 
 def CalcNewAvgPrice(prices, peaks) -> float:
-    filtered_values = [value for value, include in zip(prices, peaks) if not include] # Get only prices when not in peak
+    filtered_values: list = [value for value, include in zip(prices, peaks) if not include] # Get only prices when not in peak
 
     #Calculate new average and return, return 0 when lists are empty (catch when divide by 0)
+    average: float = 0.0
     if filtered_values:
         average = round(sum(filtered_values) / len(filtered_values), 2)
-    else:
-        average = 0.0
     return average
 
 
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
-def FetchAndParseNPData(initial=False) -> None:
+def FetchAndParseNPData(initial: bool=False) -> None:
     global fetch_Success
 
     if initial == False and fetch_Success == True:  # Only run function when program starts, beginning of each day, or when fetchig failed first time at beginning of the day
@@ -89,12 +88,12 @@ def FetchAndParseNPData(initial=False) -> None:
         logging.info("Debug mode, using Backupfile")
      
     # Get relevant data from JSON, assume data is correct
-    OLD_AVG_PRICE = nordPoolData["areaAverages"][0]["price"]
-    AVG_PRICE = OLD_AVG_PRICE + AVG_PRICE_INC
+    OLD_AVG_PRICE: float = nordPoolData["areaAverages"][0]["price"]
+    AVG_PRICE: float = OLD_AVG_PRICE + AVG_PRICE_INC
 
     logging.info("Average price for today: E %s", OLD_AVG_PRICE)
 
-    prices = []
+    prices: list = []
     for priceData in nordPoolData["multiAreaEntries"]:
         prices.append(priceData["entryPerArea"]["NL"])
 
@@ -103,7 +102,7 @@ def FetchAndParseNPData(initial=False) -> None:
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAK_WIDTH)
 
     # Calculate new average price for today and log
-    newAVGPrice = CalcNewAvgPrice(prices, relayEnableList)
+    newAVGPrice: float = CalcNewAvgPrice(prices, relayEnableList)
 
     logging.info("New average price for today is: E %s, improvement of: E %s", newAVGPrice, round(OLD_AVG_PRICE-newAVGPrice, 2))
     logging.info("Calculated savings for today: E %s", round(newAVGPrice * 24, 2))
@@ -112,8 +111,7 @@ def FetchAndParseNPData(initial=False) -> None:
 def TurnAllRelaysOff() -> None:
     logging.info("Turn all relays off")
     for i in range(1,5):
-            print("Relay off")
-            #bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
+            bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 
 # Main function to set relays based on relayEnableList
@@ -122,16 +120,16 @@ def setRelays() -> None:
   
     TurnAllRelaysOff()
 
-    hour = datetime.datetime.now().hour
+    hour:int = datetime.datetime.now().hour
 
     global relayEnableList
-    enable = relayEnableList[hour]
+    enable:bool = relayEnableList[hour]
     
     logging.info("Hour is %s, relay enable is %s", hour, enable)
 
     if enable == True:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
-        #bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
+        bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
   
 
 if __name__ == "__main__":
