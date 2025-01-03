@@ -18,7 +18,7 @@ BACKUPDATA = json.dumps(
     )
 
 def get_nordpool_prices(debug=False) -> dict:
-    if  not debug:
+    if not debug:
         url = "https://dataportal-api.nordpoolgroup.com/api/DayAheadPrices"
         dateParam = date.today()
         params = {
