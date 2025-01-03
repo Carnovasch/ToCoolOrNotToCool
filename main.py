@@ -6,16 +6,16 @@
 #   *   Idea By:            Boudewijn Rosmulder                                                *
 #   *   Sponsored by:       Koelservice Van Tol                                                *
 #   *   Author:             Danny Oldenhave                                                    *
-#   *   Last modified:      01-01-2025                                                         *
+#   *   Last modified:      03-01-2025                                                         *
 #   *   Dependancies:       json, schedule, logging, datetime, time, smbus2                    *
 #   *   Modules:            FetchNordPoolData, PeakIdentification                              *
-#   *   Subdependancies:    requests, json, datetim                                            *
+#   *   Subdependancies:    requests, json, datetime                                           *
 #   *                                                                                          *
 #   ********************************************************************************************
 
 
 import json, schedule, logging, datetime, time
-import smbus
+#import smbus
 import FetchNordPoolData, PeakIdentification
 
 # Loading server config data from file
@@ -26,12 +26,14 @@ AVG_PRICE_INC = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EU
 MAX_PEAK_WIDTH = SERVER_DATA["GeneralConfig"]["MAX_PEAK_WIDTH"]     # Amount of maximum hours a peak shall consist of 
 RELAY_TO_SWITCH = SERVER_DATA["GeneralConfig"]["RELAY_TO_SWITCH"]   # Set which relay to enable / disable; 1, 2, 3 or 4
 
+fetch_Success = False
+
 # Setting constances for Relayshield
-DEVICE_BUS = SERVER_DATA["RelayshieldConfig"]["DEVICE_BUS"]
-DEVICE_ADDR = SERVER_DATA["RelayshieldConfig"]["DEVICE_ADDR"]
-DEVICE_ON = SERVER_DATA["RelayshieldConfig"]["DEVICE_ON"]
-DEVICE_OFF = SERVER_DATA["RelayshieldConfig"]["DEVICE_OFF"]
-bus = smbus.SMBus(DEVICE_BUS)
+DEVICE_BUS = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
+DEVICE_ADDR = SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]
+DEVICE_ON = SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"]
+DEVICE_OFF = SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"]
+#bus = smbus.SMBus(DEVICE_BUS)
 
 # Initialize logging
 logging.basicConfig(
@@ -61,14 +63,25 @@ def CalcNewAvgPrice(prices, peaks) -> float:
 
 
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
-def FetchAndParseNPData() -> None:
-    logging.info("Start fetching data from Nordpool")
+def FetchAndParseNPData(initial=False) -> None:
+    global fetch_Success
 
-    global nordPoolData    
+    if initial == False and fetch_Success == True:  # Only run function when program starts, beginning of each day, or when fetchig failed first time at beginning of the day
+        return
+    if fetch_Success == False and initial == False:
+        logging.info("Try fetching data from Nordpool again after failure")
+    else:
+        logging.info("Start fetching data from Nordpool")
+
+    fetch_Success = False
+
+    global nordPoolData
     nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     if nordPoolData["backup"] == False:
-        logging.info("Nordpool data fetched succesfully")       
+        logging.info("Nordpool data fetched succesfully")
+        if initial == False:    # Only set fetch sucess to True at beginning of each day, not when program starts
+            fetch_Success = True       
     elif "e" in nordPoolData : # An error has occured fetching data from Nordpool
         logging.info("Couldn't fetch Nordpool data, using Backupfile")
         logging.info("Error: %s", nordPoolData["e"])
@@ -99,7 +112,8 @@ def FetchAndParseNPData() -> None:
 def TurnAllRelaysOff() -> None:
     logging.info("Turn all relays off")
     for i in range(1,5):
-            bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
+            print("Relay off")
+            #bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 
 # Main function to set relays based on relayEnableList
@@ -117,7 +131,7 @@ def setRelays() -> None:
 
     if enable == True:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
-        bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
+        #bus.write_byte_data(DEVICE_ADDR, RELAY_TO_SWITCH, DEVICE_ON)
   
 
 if __name__ == "__main__":
@@ -130,11 +144,12 @@ if __name__ == "__main__":
         RELAY_TO_SWITCH = 1
   
     # Get initial data from Nordpool at startup of the program and set relay accordingly
-    FetchAndParseNPData()
+    FetchAndParseNPData(True)
     setRelays()
 
     # Set scheduling scheme
     schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
+    schedule.every().day.at("00:02").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
     schedule.every().hour.at(":05").do(setRelays)               # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     while True:
