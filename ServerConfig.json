@@ -8,6 +8,13 @@
     "RelayShieldConfig": {
         "Info": "Config relayshield, do not edit",
         "DEVICE_BUS": 1,
+        "DEVICE_ADDR": 16,
+        "DEVICE_ON": 255,
+        "DEVICE_OFF": 0
+    },
+    "RelayShieldConfig_BACKUP": {
+        "Info": "Config relayshield, do not edit",
+        "DEVICE_BUS": 1,
         "DEVICE_ADDR": "0x10",
         "DEVICE_ON": "0xff",
         "DEVICE_OFF": "0x00"
