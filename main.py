@@ -30,9 +30,9 @@ fetch_Success: bool = False
 
 # Setting constances for Relayshield
 DEVICE_BUS: int = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
-DEVICE_ADDR = 0x10 #SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]
-DEVICE_ON = 0xff #SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"]
-DEVICE_OFF = 0x00 #SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"]
+DEVICE_ADDR = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"])) # Parse values back to hex values
+DEVICE_ON = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"]))     
+DEVICE_OFF = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"]))
 bus = smbus.SMBus(DEVICE_BUS)
 
 # Initialize logging
@@ -62,24 +62,23 @@ def CalcNewAvgPrice(prices, peaks) -> float:
 
 
 # Main function to get and parse NordPool Data to get a relayEnableList to enable/disable relays
-def FetchAndParseNPData(initial: bool=False) -> None:
+def FetchAndParseNPData(state:str) -> None:
     global fetch_Success
 
-    if initial == False and fetch_Success == True:  # Only run function when program starts, beginning of each day, or when fetchig failed first time at beginning of the day
-        return
-    if fetch_Success == False and initial == False:
-        logging.info("Try fetching data from Nordpool again after failure")
-    else:
+    if state == "inital" or state == "new":
         logging.info("Start fetching data from Nordpool")
-
-    fetch_Success = False
+        fetch_Success = False
+    elif state == "secondary" and fetch_Success == False:
+        logging.info("Try fetching data from Nordpool again after failure")
+    else:   # Do not fetch and parse Nordpool data and create a new peaklist when this function was a succes at beginning of a new day
+        return
 
     global nordPoolData
     nordPoolData = FetchNordPoolData.get_nordpool_prices()
 
     if nordPoolData["backup"] == False:
         logging.info("Nordpool data fetched succesfully")
-        if initial == False:    # Only set fetch sucess to True at beginning of each day, not when program starts
+        if not state == "initial":    # Only set fetch sucess to True at beginning of each day, not when program starts
             fetch_Success = True       
     elif "e" in nordPoolData : # An error has occured fetching data from Nordpool
         logging.info("Couldn't fetch Nordpool data, using Backupfile")
@@ -105,7 +104,7 @@ def FetchAndParseNPData(initial: bool=False) -> None:
     newAVGPrice: float = CalcNewAvgPrice(prices, relayEnableList)
 
     logging.info("New average price for today is: E %s, improvement of: E %s", newAVGPrice, round(OLD_AVG_PRICE-newAVGPrice, 2))
-    logging.info("Calculated savings for today: E %s", round(newAVGPrice * 24, 2))
+    logging.info("Possible savings for today: E %s", round((OLD_AVG_PRICE - newAVGPrice) * 24, 2))
 
 
 def TurnAllRelaysOff() -> None:
@@ -142,13 +141,13 @@ if __name__ == "__main__":
         RELAY_TO_SWITCH = 1
   
     # Get initial data from Nordpool at startup of the program and set relay accordingly
-    FetchAndParseNPData(True)
+    FetchAndParseNPData("inital")
     setRelays()
 
     # Set scheduling scheme
-    schedule.every().day.at("00:01").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
-    schedule.every().day.at("00:02").do(FetchAndParseNPData)    # At beginning of each day, get new list from parsed NordPool data  
-    schedule.every().hour.at(":05").do(setRelays)               # At beginning of each hour use the relaysEnableList to enable/disable relays
+    schedule.every().day.at("00:01").do(FetchAndParseNPData, state="new")           # At beginning of each day, parse and get new list from NordPool data  
+    schedule.every().day.at("00:02").do(FetchAndParseNPData, state="secondary")     # When applicable, secondary try of parse and get new list from NordPool data  
+    schedule.every().hour.at(":05").do(setRelays)                                   # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     while True:
         schedule.run_pending()
