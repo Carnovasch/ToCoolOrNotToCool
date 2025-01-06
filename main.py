@@ -30,9 +30,9 @@ fetch_Success: bool = False
 
 # Setting constances for Relayshield
 DEVICE_BUS: int = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
-DEVICE_ADDR = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"], 16)) # Parse values back to hex values
-DEVICE_ON = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"], 16))     
-DEVICE_OFF = hex(int(SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"], 16))
+DEVICE_ADDR = hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"], 16) # Parse values back to hex values
+DEVICE_ON = hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"], 16)     
+DEVICE_OFF = hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"], 16)
 bus = smbus.SMBus(DEVICE_BUS)
 
 # Initialize logging
