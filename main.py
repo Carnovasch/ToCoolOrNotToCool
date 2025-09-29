@@ -33,7 +33,7 @@ DEVICE_BUS: int = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
 DEVICE_ADDR = 0x10 # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]) # Parse values back to hex values
 DEVICE_ON = 0xff # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"])     
 DEVICE_OFF = 0x00 # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"])
-bus = smbus.SMBus(DEVICE_BUS)
+bus = smbus.SMBus(1) #DEVICE_BUS)
 
 # Initialize logging
 logging.basicConfig(
