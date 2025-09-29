@@ -19,7 +19,7 @@ import smbus
 import FetchNordPoolData, PeakIdentification
 
 # Loading server config data from file
-with open("./ServerConfig.json", "r") as server_config:
+with open("/home/boudewijn/ToCoolOrNotToCool/ServerConfig.json", "r") as server_config:
     SERVER_DATA = json.load(server_config)
 
 AVG_PRICE_INC: int = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EUR) to increase average price to determine peaks
