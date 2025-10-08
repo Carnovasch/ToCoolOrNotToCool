@@ -103,7 +103,7 @@ def FetchAndParseNPData(state:str) -> None:
     global relayEnableList
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAKS_DAY, MAX_PEAK_LEN, QRT_OFF)
 
-    # Get the indices of the '15-minutes' the relais will be enabled
+    # Get the indices of the '15-minutes' the relais will be enabled for logging
     enabled_for_logging: list = []
     for i in range(len(relayEnableList)):
         if relayEnableList[i] == True:
