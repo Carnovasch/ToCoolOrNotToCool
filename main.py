@@ -152,10 +152,15 @@ if __name__ == "__main__":
     FetchAndParseNPData("inital")
     setRelays()
 
-    # Set scheduling scheme
+    # Set scheduling scheme, for each schedule a minute added for security
     schedule.every().day.at("00:01").do(FetchAndParseNPData, state="new")           # At beginning of each day, parse and get new list from NordPool data  
-    schedule.every().day.at("00:02").do(FetchAndParseNPData, state="secondary")     # When applicable, secondary try of parse and get new list from NordPool data  
-    schedule.every(15).minutes.do(setRelays)                                        # Every 15 minutes use the relaysEnableList to enable/disable relays
+    schedule.every().day.at("00:02").do(FetchAndParseNPData, state="secondary")     # When applicable, secondary try of parse and get new list from NordPool data 
+    # Every 15 minutes use the relaysEnableList to enable/disable relays 
+    schedule.every().hour.at(":01").so(setRelays)
+    schedule.every().hour.at(":16").so(setRelays)
+    schedule.every().hour.at(":31").so(setRelays)
+    schedule.every().hour.at(":46").so(setRelays)
+    #schedule.every(15).minutes.do(setRelays)                                        # Every 15 minutes use the relaysEnableList to enable/disable relays
     #schedule.every().hour.at(":05").do(setRelays)                                  # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     while True:
