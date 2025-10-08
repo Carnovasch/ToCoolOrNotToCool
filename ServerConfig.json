@@ -1,8 +1,10 @@
 {
     "GeneralConfig": {
-        "Info": "Amount (EUR) to increase average price to determine peaks, Amount of maximum hours a peak shall consist of & Set which relay to enable / disable; 1, 2, 3 or 4",
-        "AVG_PRICE_INC": 15,
-        "MAX_PEAK_WIDTH": 3,
+        "Info": "Amount (EUR) to increase average price to determine peaks, Amount of maximum peaks a day, How many 'fifteen minutes' a peak shall consist of, How many 'fifteen minutes' the relais will turn off before and after a peak & Set which relay to enable / disable; 1, 2, 3 or 4",
+        "AVG_PRICE_INC": 5,
+        "MAX_PEAKS_DAY": 5,
+        "MAX_PEAK_LEN": 3,
+        "QRT_OFF": 2,
         "RELAY_TO_SWITCH": 1
     },
     "RelayShieldConfig": {

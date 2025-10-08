@@ -6,7 +6,7 @@
 #   *   Idea By:            Boudewijn Rosmulder                                                *
 #   *   Sponsored by:       Koelservice Van Tol                                                *
 #   *   Author:             Danny Oldenhave                                                    *
-#   *   Last modified:      03-01-2025                                                         *
+#   *   Last modified:      07-10-2025                                                         *
 #   *   Dependancies:       json, schedule, logging, datetime, time, smbus2                    *
 #   *   Modules:            FetchNordPoolData, PeakIdentification                              *
 #   *   Subdependancies:    requests, json, datetime                                           *
@@ -20,20 +20,23 @@ import FetchNordPoolData, PeakIdentification
 
 # Loading server config data from file
 with open("/home/boudewijn/ToCoolOrNotToCool/ServerConfig.json", "r") as server_config:
+# with open("./ServerConfig.json", "r") as server_config:
     SERVER_DATA = json.load(server_config)
 
-AVG_PRICE_INC: int = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]       # Amount (EUR) to increase average price to determine peaks
-MAX_PEAK_WIDTH: int = SERVER_DATA["GeneralConfig"]["MAX_PEAK_WIDTH"]     # Amount of maximum hours a peak shall consist of 
+AVG_PRICE_INC: int = SERVER_DATA["GeneralConfig"]["AVG_PRICE_INC"]      # Amount (EUR) to increase average price to determine peaks
+MAX_PEAKS_DAY: int = SERVER_DATA["GeneralConfig"]["MAX_PEAKS_DAY"]      # Amount of maximum peaks a day
+MAX_PEAK_LEN: int = SERVER_DATA["GeneralConfig"]["MAX_PEAK_LEN"]        # How many 'fifteen minutes' a peak shall consist of
+QRT_OFF: int = SERVER_DATA["GeneralConfig"]["QRT_OFF"]                  # How many 'fifteen minutes' the relais will turn off before and after a peak
 RELAY_TO_SWITCH: int = SERVER_DATA["GeneralConfig"]["RELAY_TO_SWITCH"]   # Set which relay to enable / disable; 1, 2, 3 or 4
 
 fetch_Success: bool = False
 
 # Setting constances for Relayshield
 DEVICE_BUS: int = SERVER_DATA["RelayShieldConfig"]["DEVICE_BUS"]
-DEVICE_ADDR = 0x10 # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ADDR"]) # Parse values back to hex values
-DEVICE_ON = 0xff # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_ON"])     
-DEVICE_OFF = 0x00 # hex(SERVER_DATA["RelayShieldConfig"]["DEVICE_OFF"])
-bus = smbus.SMBus(1) #DEVICE_BUS)
+DEVICE_ADDR = 0x10 
+DEVICE_ON = 0xff    
+DEVICE_OFF = 0x00 
+bus = smbus.SMBus(1)
 
 # Initialize logging
 logging.basicConfig(
@@ -98,7 +101,7 @@ def FetchAndParseNPData(state:str) -> None:
 
     # Get enablelist for enabling relays
     global relayEnableList
-    relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAK_WIDTH)
+    relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAKS_DAY, MAX_PEAK_LEN, QRT_OFF)
 
     # Calculate new average price for today and log
     newAVGPrice: float = CalcNewAvgPrice(prices, relayEnableList)
@@ -110,6 +113,7 @@ def FetchAndParseNPData(state:str) -> None:
 def TurnAllRelaysOff() -> None:
     logging.info("Turn all relays off")
     for i in range(1,5):
+            # print("Turning Relays Off")
             bus.write_byte_data(DEVICE_ADDR, i, DEVICE_OFF)    
 
 
@@ -147,7 +151,8 @@ if __name__ == "__main__":
     # Set scheduling scheme
     schedule.every().day.at("00:01").do(FetchAndParseNPData, state="new")           # At beginning of each day, parse and get new list from NordPool data  
     schedule.every().day.at("00:02").do(FetchAndParseNPData, state="secondary")     # When applicable, secondary try of parse and get new list from NordPool data  
-    schedule.every().hour.at(":05").do(setRelays)                                   # At beginning of each hour use the relaysEnableList to enable/disable relays
+    schedule.every(15).minutes.do(setRelays)                                        # Every 15 minutes use the relaysEnableList to enable/disable relays
+    #schedule.every().hour.at(":05").do(setRelays)                                  # At beginning of each hour use the relaysEnableList to enable/disable relays
 
     while True:
         schedule.run_pending()
