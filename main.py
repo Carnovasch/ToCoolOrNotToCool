@@ -103,11 +103,18 @@ def FetchAndParseNPData(state:str) -> None:
     global relayEnableList
     relayEnableList = PeakIdentification.identifyPeaks(prices, AVG_PRICE, MAX_PEAKS_DAY, MAX_PEAK_LEN, QRT_OFF)
 
+    # Get the indices of the '15-minutes' the relais will be enabled
+    enabled_for_logging: list = []
+    for i in range(len(relayEnableList)):
+        if relayEnableList[i] == True:
+            enabled_for_logging.append(i)
+
     # Calculate new average price for today and log
     newAVGPrice: float = CalcNewAvgPrice(prices, relayEnableList)
 
     logging.info("New average price for today is: E %s, improvement of: E %s", newAVGPrice, round(OLD_AVG_PRICE-newAVGPrice, 2))
     logging.info("Possible savings for today: E %s", round((OLD_AVG_PRICE - newAVGPrice) * 24, 2))
+    logging.info("Relais will be enabled on the following '15-minutes' for today: %s", enabled_for_logging)
 
 
 def TurnAllRelaysOff() -> None:
