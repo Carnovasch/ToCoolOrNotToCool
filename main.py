@@ -119,16 +119,20 @@ def TurnAllRelaysOff() -> None:
 
 # Main function to set relays based on relayEnableList
 def setRelays() -> None:
-    logging.info("Start of new hour, getting ready to set Relays")
+    logging.info("Start of new '15-minutes', getting ready to set Relays")
   
     TurnAllRelaysOff()
 
-    hour:int = datetime.datetime.now().hour
+    # Get current '15-minutes' of the day in range 0 upto 96
+    current_datetime = datetime.datetime.now()
+    hour:int = current_datetime.hour
+    minute:int = current_datetime.minute
+    qrt_of_day:int = int((hour * 60 + minute) // 15)
 
     global relayEnableList
-    enable:bool = relayEnableList[hour]
+    enable:bool = relayEnableList[qrt_of_day]
     
-    logging.info("Hour is %s, relay enable is %s", hour, enable)
+    logging.info("Time is %s, '15-th minute' of day is %s, relay enable is %s", current_datetime, qrt_of_day, enable)
 
     if enable == True:
         logging.info("Enable relay %s", RELAY_TO_SWITCH)
